@@ -1,3 +1,13 @@
+lazy val deps = new {
+  val main = new {
+    val fileUtil  = "1.1.3"
+    val jzy3d     = "1.0.2"
+    val kollFlitz = "0.2.2"
+    val scopt     = "3.7.0"
+    val tinker    = "2.1.17"
+  }
+}
+
 lazy val root = project.in(file("."))
   .settings(
     name                 := "TinkerForgeIMU2Test",
@@ -9,7 +19,10 @@ lazy val root = project.in(file("."))
     licenses             := Seq("LGPL v2.1+" -> url("http://www.gnu.org/licenses/lgpl-2.1.txt")),
     scalacOptions       ++= Seq("-deprecation", "-unchecked", "-feature", "-Xfuture", "-encoding", "utf8"),
     libraryDependencies ++= Seq(
-      "com.tinkerforge"  %  "tinkerforge" % "2.1.17",
-      "com.github.scopt" %% "scopt"       % "3.7.0"
+      "com.tinkerforge"   %   "tinkerforge" % deps.main.tinker,
+      "com.github.scopt"  %%  "scopt"       % deps.main.scopt,
+      "de.sciss"          %%  "fileutil"    % deps.main.fileUtil,
+      "de.sciss"          %%  "kollflitz"   % deps.main.kollFlitz,
+      "org.jzy3d"         %   "jzy3d-api"   % deps.main.jzy3d
     )
   )
