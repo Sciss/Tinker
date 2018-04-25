@@ -7,9 +7,7 @@ import com.tinkerforge.{BrickIMUV2, IPConnection}
 //
 // opens the IMU v2 brick, prints current quaternion, then quits
 object ExampleIMUV2Simple {
-  val DefaultUID = "6jDAtS"   // the one I've got...
-
-  case class Config(uid: String = DefaultUID)
+  case class Config(uid: String = Common.DefaultIMU_UID)
 
   def main(args: Array[String]): Unit = {
     val default = Config()
@@ -26,7 +24,7 @@ object ExampleIMUV2Simple {
     val c = new IPConnection
     // Create IP connection
     val imu = new BrickIMUV2(config.uid, c) // Create device object
-    c.connect(Common.Host, Common.Port)   // Connect to brickd
+    c.connect(Common.Host, Common.Port)     // Connect to brickd
 
     // Don't use device before `c` is connected
     // Get current quaternion

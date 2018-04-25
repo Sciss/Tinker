@@ -13,3 +13,4 @@ This project builds against Scala 2.12, using [sbt](http://www.scala-sbt.org/). 
 
 - `sbt 'runMain de.sciss.tinkerforge.ExampleEnumerate'`
 - `sbt 'runMain de.sciss.tinkerforge.ExampleIMUV2Simple --uid your-imu-brick-id'`
+- `sbt 'runMain de.sciss.tinkerforge.ExampleIMUV2AllData --uid your-imu-brick-id'`
