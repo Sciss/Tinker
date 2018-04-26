@@ -86,7 +86,7 @@ object IntegrateAndPlot {
 //    val accel1      = (new Coord3D(0,0,0) +: accel).scanLeft(new Coord3D(0,0,0))((p, in) =>
 //      new Coord3D(in.x * 0.02 + p.x * 0.98, in.y * 0.02 + p.y * 0.98, in.z * 0.02 + p.z * 0.98)
 //    )
-    
+
     val accel1 = accel
 
     val ctlCoords0  = (new Coord3D(0,0,0) +: accel1).integrate
