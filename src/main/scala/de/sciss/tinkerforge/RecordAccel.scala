@@ -151,7 +151,46 @@ object RecordAccel {
     imu.disableStatusLED()
     println(s"SensorFusionMode   : ${imu.getSensorFusionMode}")
     // default: [magnetometerRate = 5, gyroscopeRange = 0, gyroscopeBandwidth = 7, accelerometerRange = 1, accelerometerBandwidth = 3]
-    imu.setSensorConfiguration(5, 0, 7, 1, 3)
+
+    /*
+
+    0: 2hz, für magnetometer_rate
+    1: 6hz, für magnetometer_rate
+    2: 8hz, für magnetometer_rate
+    3: 10hz, für magnetometer_rate
+    4: 15hz, für magnetometer_rate
+    5: 20hz, für magnetometer_rate
+    6: 25hz, für magnetometer_rate
+    7: 30hz, für magnetometer_rate
+    0: 2000dps, für gyroscope_range
+    1: 1000dps, für gyroscope_range
+    2: 500dps, für gyroscope_range
+    3: 250dps, für gyroscope_range
+    4: 125dps, für gyroscope_range
+    0: 523hz, für gyroscope_bandwidth
+    1: 230hz, für gyroscope_bandwidth
+    2: 116hz, für gyroscope_bandwidth
+    3: 47hz, für gyroscope_bandwidth
+    4: 23hz, für gyroscope_bandwidth
+    5: 12hz, für gyroscope_bandwidth
+    6: 64hz, für gyroscope_bandwidth
+    7: 32hz, für gyroscope_bandwidth
+    0: 2g, für accelerometer_range
+    1: 4g, für accelerometer_range
+    2: 8g, für accelerometer_range
+    3: 16g, für accelerometer_range
+    0: 7 81hz, für accelerometer_bandwidth
+    1: 15 63hz, für accelerometer_bandwidth
+    2: 31 25hz, für accelerometer_bandwidth
+    3: 62 5hz, für accelerometer_bandwidth
+    4: 125hz, für accelerometer_bandwidth
+    5: 250hz, für accelerometer_bandwidth
+    6: 500hz, für accelerometer_bandwidth
+    7: 1000hz, für accelerometer_bandwidth
+
+     */
+
+    imu.setSensorConfiguration(/* mag */ 5, /* gyro-range */ 4, /* gyro-bw */ 2, /* acc-range */ 0, /* acc-bw */ 4)
 //    imu.setSensorConfiguration(5, 0, 3, 1, 7)
     println(s"SensorConfiguration: ${imu.getSensorConfiguration}")
     imu.setSensorFusionMode(1)
