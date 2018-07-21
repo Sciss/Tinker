@@ -14,9 +14,15 @@
 package de.sciss.tinkerforge
 
 import java.io.{DataInputStream, DataOutputStream, FileInputStream, FileOutputStream}
+import java.text.SimpleDateFormat
+import java.util.{Date, Locale}
 
-import de.sciss.file._
 import com.tinkerforge.{BrickIMUV2, IPConnection}
+import de.sciss.file._
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future, Promise}
+import scala.util.Try
 
 object RecordAccel {
   case class Config(
@@ -24,7 +30,9 @@ object RecordAccel {
                      fOut     : File    = file("out"),
                      maxRecord: Double  = 60.0,
                      skip     : Double  =  4.0,
-                     period   : Int     = 10
+                     period   : Int     = 10,
+                     raspi    : Boolean = false,
+                     verbose  : Boolean = false
                    )
 
   def main(args: Array[String]): Unit = {
@@ -50,8 +58,17 @@ object RecordAccel {
         .validate { v => if (v >= 1) success else failure("Must be >= 1") }
         .text (s"Data polling period in ms (default: ${default.period})")
         .action { (v, c) => c.copy(period = v) }
+      opt[Unit]('r', "raspi")
+        .text ("RaspberryPi controls (LED, buttons)")
+        .action { (_, c) => c.copy(raspi = true) }
+      opt[Unit]('v', "verbose")
+        .text ("Enable verbose logging")
+        .action { (_, c) => c.copy(verbose = true) }
     }
-    p.parse(args, default).fold(sys.exit(1))(run)
+    p.parse(args, default).fold(sys.exit(1)) { c =>
+      if (c.raspi)  runRaspi  (c)
+      else          runNoRaspi(c)
+    }
   }
 
   final val COOKIE = 0x4C6E4163 // "LnAc"
@@ -96,7 +113,73 @@ object RecordAccel {
     }
   }
 
-  def run(config: Config): Unit = {
+  final class Cancel {
+    @volatile
+    private[this] var value = false
+
+    def set(): Unit = value = true
+
+    def get(): Boolean = value
+  }
+
+  private sealed abstract class State
+  private case object Stopped   extends State
+  private case object Recording extends State
+
+  def runRaspi(config: Config): Unit = {
+    val led = new DualColorLED
+
+    var state : State         = null
+    var cancel: Cancel        = null
+
+    val fName = new SimpleDateFormat("yyMMdd_HHmmss", Locale.US)
+
+    def stopped(): Unit = {
+      led.green()
+      state = Stopped
+    }
+
+    stopped()
+
+    def record(): Unit = {
+      cancel  = new Cancel
+      state   = Recording
+      led.red()
+      val (base, ext) = config.fOut.baseAndExt
+      val dateS       = fName.format(new Date)
+      val name        = s"${base}_$dateS.$ext"
+      val fOutNew     = config.fOut.replaceName(name)
+      println(s"Recording to $fOutNew")
+      val configNew   = config.copy(fOut = fOutNew)
+      val fut         = run(configNew, cancel)
+      import scala.concurrent.ExecutionContext.Implicits.global
+      fut.onComplete { _ =>
+        stopped()
+      }
+    }
+
+    def stop(): Unit = {
+      cancel.set()
+    }
+
+    RaspiButtons.run() { ch =>
+      if (state == Stopped) {
+        if (ch == '1') record()
+      }
+      else if (state == Recording) {
+        if (ch == '2') stop()
+      }
+    }
+  }
+
+  def runNoRaspi(config: Config): Unit = {
+    val fut = run(config)
+    Await.ready(fut, Duration.Inf)
+    val isSuccess = fut.value.exists(_.isSuccess)
+    sys.exit(if (isSuccess) 0 else 1)
+  }
+
+  def run(config: Config, cancel: Cancel = new Cancel): Future[Unit] = {
     config.fOut.createNewFile()
     require (config.fOut.canWrite, s"File ${config.fOut} is not writable.")
 
@@ -115,9 +198,14 @@ object RecordAccel {
     var cnt       = 0
     var cntT      = 0
 
+    val p         = Promise[Unit]()
+
     imu.addLinearAccelerationListener { (x: Short, y: Short, z: Short) =>
       val t = System.currentTimeMillis()
       if (t >= skip) {
+        if (cntT == 0) {
+          println("Recording...")
+        }
         time(cntT) = t
         val _arr = arr
         var i = cnt
@@ -126,22 +214,23 @@ object RecordAccel {
         _arr(i) = z; i += 1
         cnt = i
         cntT += 1
-        if (i == arrSize || t >= stop) {
+
+        if (config.verbose) {
+          println(s"[$t] x $x y $y z $z")
+        }
+
+        if (i == arrSize || t >= stop || cancel.get()) {
+          println("End reached.")
           try {
             imu.setLinearAccelerationPeriod(0)
             c.disconnect()
           } finally {
-            writeData(arr, 0, i/3, config.fOut)
-            //          i = 0
-            ////          val scale = 1.0/  100.0
-            //          val j     = timeSize/2
-            val dt    = cntT - 1
-            println(f"Effective rate: ${dt / ((time(cntT - 1) - time(0)) * 0.001)}%1.1f Hz")
-            ////          while (i < arrSize) {
-            ////            println(f"${_arr(i + 0) * scale}%1.2f, ${_arr(i + 1) * scale}%1.2f, ${_arr(i + 2) * scale}%1.2f")
-            ////            i += 3
-            ////          }
-            sys.exit()
+            val res = Try[Unit] {
+              writeData(arr, 0, i / 3, config.fOut)
+              val dt = cntT - 1
+              println(f"Effective rate: ${dt / ((time(cntT - 1) - time(0)) * 0.001)}%1.1f Hz")
+            }
+            p.tryComplete(res)
           }
         }
       }
@@ -203,8 +292,8 @@ object RecordAccel {
     imu.setGravityVectorPeriod      (0L)
     imu.setMagneticFieldPeriod      (0L)
     imu.setLinearAccelerationPeriod (config.period)
-    Thread.sleep((config.skip * 1000).toLong)
-    println("Recording...")
-    Thread.sleep(Long.MaxValue)
+//    Thread.sleep((config.skip * 1000).toLong)
+//    Thread.sleep(Long.MaxValue)
+    p.future
   }
 }

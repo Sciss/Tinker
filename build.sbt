@@ -5,6 +5,7 @@ lazy val deps = new {
     val kollFlitz = "0.2.2"
     val scopt     = "3.7.0"
     val tinker    = "2.1.17"
+    val pi4j      = "1.1"
   }
 }
 
@@ -23,6 +24,11 @@ lazy val root = project.in(file("."))
       "com.github.scopt"  %%  "scopt"       % deps.main.scopt,
       "de.sciss"          %%  "fileutil"    % deps.main.fileUtil,
       "de.sciss"          %%  "kollflitz"   % deps.main.kollFlitz,
-      "org.jzy3d"         %   "jzy3d-api"   % deps.main.jzy3d
-    )
+      "org.jzy3d"         %   "jzy3d-api"   % deps.main.jzy3d,
+      "com.pi4j"          %   "pi4j-core"   % deps.main.pi4j
+    ),
+    // assembly
+    target          in assembly := baseDirectory.value,
+    mainClass       in assembly := Some("de.sciss.tinkerforge.RecordAccel"),
+    assemblyJarName in assembly := "RecordAccel.jar"
   )
