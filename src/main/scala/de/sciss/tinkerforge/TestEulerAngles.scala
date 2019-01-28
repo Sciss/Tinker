@@ -16,15 +16,29 @@ package de.sciss.tinkerforge
 import com.tinkerforge.BrickIMUV2.OrientationListener
 import com.tinkerforge.{BrickIMUV2, IPConnection}
 
-import scala.swing.{Alignment, Frame, GridPanel, Label, MainFrame, SimpleSwingApplication, Swing, TextField}
+import scala.swing.{Alignment, GridPanel, Label, MainFrame, Swing, TextField}
 
 /** Simple swing view showing the euler angles */
-object TestEulerAngles extends SimpleSwingApplication {
-  lazy val top: Frame = {
+object TestEulerAngles {
+  case class Config(uid: String = Common.DefaultIMU_UID)
 
+  def main(args: Array[String]): Unit = {
+    val default = Config()
+
+    val p = new scopt.OptionParser[Config]("TestEulerAngles") {
+      opt[String]('u', "uid")
+        .text (s"UID of the IMU brick you want to use (default: ${default.uid})")
+        .action { (v, c) => c.copy(uid = v) }
+    }
+    p.parse(args, default).fold(sys.exit(1)) { config =>
+      Swing.onEDT(run(config))
+    }
+  }
+
+  def run(config: Config): Unit = {
     val c = new IPConnection
     // Create IP connection
-    val imu = new BrickIMUV2(Common.DefaultIMU_UID, c) // Create device object
+    val imu = new BrickIMUV2(config.uid, c) // Create device object
     c.connect(Common.Host, Common.Port)     // Connect to brickd
 
     def mkField(): TextField =
