@@ -29,6 +29,9 @@ lazy val root = project.in(file("."))
       "org.jzy3d"         %   "jzy3d-api"   % deps.main.jzy3d,
       "com.pi4j"          %   "pi4j-core"   % deps.main.pi4j
     ),
+    resolvers ++= Seq(
+      "jzv3d releases"    at "http://maven.jzy3d.org/releases"                                            // 3D chart
+    ),
     // assembly
     target          in assembly := baseDirectory.value,
     mainClass       in assembly := Some("de.sciss.tinkerforge.RecordAccel"),
