@@ -1,5 +1,7 @@
 # TinkerForgeIMU2Test
 
+[![Build Status](https://travis-ci.org/Sciss/TinkerForgeIMU2Test.svg?branch=master)](https://travis-ci.org/Sciss/TinkerForgeIMU2Test)
+
 ## statement
 
 This is a project for testing the Java bindings to [TinkerForge](https://www.tinkerforge.com) API.
