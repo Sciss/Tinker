@@ -71,6 +71,8 @@ object IntegrateAndPlot {
     implicit object Coord3DNumeric extends Numeric[Coord3D] {
       private def undefined(name: String): Nothing = throw new UnsupportedOperationException(name)
 
+      override def parseString(str: String): Option[Coord3D] = None
+
       def plus(a: Coord3D, b: Coord3D): Coord3D =
         new Coord3D(a.x + b.x, a.y + b.y, a.z + b.z)
 
