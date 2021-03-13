@@ -7,6 +7,7 @@ lazy val deps = new {
     val swingPlus = "0.5.0"
     val tinker    = "2.1.30"
     val pi4j      = "1.4"
+    val scalaOSC  = "1.3.0"
   }
 }
 
@@ -26,6 +27,7 @@ lazy val root = project.in(file("."))
       "de.sciss"          %%  "fileutil"    % deps.main.fileUtil,
       "de.sciss"          %%  "kollflitz"   % deps.main.kollFlitz,
       "de.sciss"          %%  "swingplus"   % deps.main.swingPlus,
+      "de.sciss"          %%  "scalaosc"    % deps.main.scalaOSC,
       "org.jzy3d"         %   "jzy3d-api"   % deps.main.jzy3d,
       "com.pi4j"          %   "pi4j-core"   % deps.main.pi4j
     ),

@@ -15,20 +15,35 @@ package de.sciss.tinkerforge
 
 import com.tinkerforge.BrickIMUV2.{OrientationListener, QuaternionListener}
 import com.tinkerforge.{BrickIMUV2, IPConnection}
+import de.sciss.osc
 
+import java.net.InetSocketAddress
 import scala.swing.{Alignment, GridPanel, Label, MainFrame, Swing, TextField}
 
 /** Simple swing view showing the euler angles */
 object ViewOrientation {
-  case class Config(uid: String = Common.DefaultIMU_UID)
+  case class Config(uid: String = Common.DefaultIMU_UID,
+                    osc: Boolean = false, oscHost: String = "127.0.0.1", oscPort: Int = 6448)
+
+  val default: Config = Config()
 
   def main(args: Array[String]): Unit = {
-    val default = Config()
-
     val p = new scopt.OptionParser[Config]("TestEulerAngles") {
       opt[String]('u', "uid")
         .text (s"UID of the IMU brick you want to use (default: ${default.uid})")
         .action { (v, c) => c.copy(uid = v) }
+
+      opt[Unit]('o', "osc")
+        .text (s"Enable OSC output to Wekinator (default: ${default.osc})")
+        .action { (_, c) => c.copy(osc = true) }
+
+      opt[String]('h', "host")
+        .text (s"OSC output host name to Wekinator (default: ${default.oscHost})")
+        .action { (v, c) => c.copy(oscHost = v) }
+
+      opt[Int]('p', "port")
+        .text (s"OSC output port to Wekinator (default: ${default.oscPort})")
+        .action { (v, c) => c.copy(oscPort = v) }
     }
     p.parse(args, default).fold(sys.exit(1)) { config =>
       Swing.onEDT(run(config))
@@ -40,6 +55,17 @@ object ViewOrientation {
     // Create IP connection
     val imu = new BrickIMUV2(config.uid, c) // Create device object
     c.connect(Common.Host, Common.Port)     // Connect to brickd
+
+    val tOpt = if (config.osc) {
+      val cfg = osc.UDP.Config()
+      val tgt = new InetSocketAddress(config.oscHost, config.oscPort)
+      cfg.localIsLoopback = config.oscHost == default.oscHost
+      val t = osc.UDP.Transmitter(tgt, cfg)
+      t.connect()
+      Some(t)
+    } else {
+      None
+    }
 
     def mkField(): TextField =
       new TextField(8) {
@@ -62,10 +88,17 @@ object ViewOrientation {
       private[this] val scaleAng = 1.0/16.0
 
       def orientation(heading: Short, roll: Short, pitch: Short): Unit = {
+        val headAng   = heading * scaleAng
+        val rollAng   = roll    * scaleAng
+        val pitchAng  = pitch   * scaleAng
+
+        tOpt.foreach { t =>
+          t ! osc.Message("/wek/inputs", headAng.toFloat, rollAng.toFloat, pitchAng.toFloat)
+        }
         Swing.onEDT {
-          ggHead  .text = f"${heading * scaleAng}%1.1f°"
-          ggRoll  .text = f"${roll    * scaleAng}%1.1f°"
-          ggPitch .text = f"${pitch   * scaleAng}%1.1f°"
+          ggHead  .text = f"$headAng%1.1f°"
+          ggRoll  .text = f"$rollAng%1.1f°"
+          ggPitch .text = f"$pitchAng%1.1f°"
         }
       }
     })
@@ -110,10 +143,10 @@ object ViewOrientation {
 
       def quaternion(wi: Short, xi: Short, yi: Short, zi: Short): Unit = {
         Swing.onEDT {
-          val w = wi *scaleQuat
-          val x = xi *scaleQuat
-          val y = yi *scaleQuat
-          val z = zi *scaleQuat
+          val w = wi * scaleQuat
+          val x = xi * scaleQuat
+          val y = yi * scaleQuat
+          val z = zi * scaleQuat
 
           ggQW.text = f"$w%1.2f"
           ggQX.text = f"$x%1.2f"
