@@ -1,8 +1,8 @@
 /*
- *  ViewOrientation.scala
+ *  View.scala
  *  (TinkerForgeIMU2Test)
  *
- *  Copyright (c) 2018-2019 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2018-2021 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -21,7 +21,7 @@ import java.net.InetSocketAddress
 import scala.swing.{Alignment, GridPanel, Label, MainFrame, Swing, TextField}
 
 /** Simple swing view showing the euler angles */
-object ViewOrientation {
+object View {
   case class Config(uid: String = Common.DefaultIMU_UID,
                     osc: Boolean = false, oscHost: String = "127.0.0.1", oscPort: Int = 6448)
 
