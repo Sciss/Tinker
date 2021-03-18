@@ -5,5 +5,5 @@ project/boot/
 .idea/
 .idea_modules/
 .history
-RecordAccel.jar
+/*.jar
 .bsp/

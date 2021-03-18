@@ -18,7 +18,8 @@ import com.tinkerforge.{BrickIMUV2, IPConnection}
 import de.sciss.osc
 
 import java.net.InetSocketAddress
-import scala.swing.{Alignment, GridPanel, Label, MainFrame, Swing, TextField}
+import scala.swing.event.ButtonClicked
+import scala.swing.{Alignment, BorderPanel, GridPanel, Label, MainFrame, Swing, TextField, ToggleButton}
 
 /** Simple swing view showing the euler angles */
 object View {
@@ -56,11 +57,26 @@ object View {
     val imu = new BrickIMUV2(config.uid, c) // Create device object
     c.connect(Common.Host, Common.Port)     // Connect to brickd
 
+    var oscEnabled = false
+
+    val ggOSC = if (config.osc) {
+      val b = new ToggleButton("Send OSC") {
+        reactions += {
+          case ButtonClicked(_) =>
+            oscEnabled = selected
+        }
+      }
+      Some(b)
+    } else {
+      None
+    }
+
+    val tgt = new InetSocketAddress(config.oscHost, config.oscPort)
+
     val tOpt = if (config.osc) {
       val cfg = osc.UDP.Config()
-      val tgt = new InetSocketAddress(config.oscHost, config.oscPort)
       cfg.localIsLoopback = config.oscHost == default.oscHost
-      val t = osc.UDP.Transmitter(tgt, cfg)
+      val t = osc.UDP.Transmitter(cfg)
       t.connect()
       Some(t)
     } else {
@@ -92,8 +108,17 @@ object View {
         val rollAng   = roll    * scaleAng
         val pitchAng  = pitch   * scaleAng
 
-        tOpt.foreach { t =>
-          t ! osc.Message("/wek/inputs", headAng.toFloat, rollAng.toFloat, pitchAng.toFloat)
+        if (oscEnabled) tOpt.foreach { t =>
+          try {
+            t.send(osc.Message("/wek/inputs", headAng.toFloat, rollAng.toFloat, pitchAng.toFloat), tgt)
+          } catch {
+            case _: Exception =>
+              oscEnabled = false
+              Console.err.println("Could not send OSC")
+              Swing.onEDT {
+                ggOSC.foreach(_.selected = false)
+              }
+          }
         }
         Swing.onEDT {
           ggHead  .text = f"$headAng%1.1f°"
@@ -164,24 +189,32 @@ object View {
 
     imu.setQuaternionPeriod(20)
 
+    val pPar = new GridPanel(0, 2) {
+      hGap = 8
+      vGap = 2
+      contents ++= Seq(
+        new Label("Heading:", null, Alignment.Trailing), ggHead,
+        new Label("Roll:"   , null, Alignment.Trailing), ggRoll,
+        new Label("Pitch:"  , null, Alignment.Trailing), ggPitch,
+        Swing.HGlue, Swing.HGlue,
+        new Label("W:", null, Alignment.Trailing), ggQW,
+        new Label("X:", null, Alignment.Trailing), ggQX,
+        new Label("Y:", null, Alignment.Trailing), ggQY,
+        new Label("Z:", null, Alignment.Trailing), ggQZ,
+        Swing.HGlue, Swing.HGlue,
+        new Label("Azimuth:"  , null, Alignment.Trailing), ggAzi,
+        new Label("Elevation:", null, Alignment.Trailing), ggEle,
+      )
+    }
+
     new MainFrame {
       title = "IMU Orientation"
-      contents = new GridPanel(0, 2) {
-        hGap = 8
-        vGap = 2
-        contents ++= Seq(
-          new Label("Heading:", null, Alignment.Trailing), ggHead,
-          new Label("Roll:"   , null, Alignment.Trailing), ggRoll,
-          new Label("Pitch:"  , null, Alignment.Trailing), ggPitch,
-          Swing.HGlue, Swing.HGlue,
-          new Label("W:", null, Alignment.Trailing), ggQW,
-          new Label("X:", null, Alignment.Trailing), ggQX,
-          new Label("Y:", null, Alignment.Trailing), ggQY,
-          new Label("Z:", null, Alignment.Trailing), ggQZ,
-          Swing.HGlue, Swing.HGlue,
-          new Label("Azimuth:"  , null, Alignment.Trailing), ggAzi,
-          new Label("Elevation:", null, Alignment.Trailing), ggEle,
-        )
+      contents = new BorderPanel {
+        add(pPar, BorderPanel.Position.Center)
+        layoutManager.setVgap(8)
+        ggOSC.foreach { b =>
+          add(b, BorderPanel.Position.South)
+        }
       }
       pack().centerOnScreen()
       open()
