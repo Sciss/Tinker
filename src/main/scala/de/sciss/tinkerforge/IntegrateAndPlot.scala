@@ -2,7 +2,7 @@
  *  IntegrateAndPlot.scala
  *  (TinkerForgeIMU2Test)
  *
- *  Copyright (c) 2018-2021 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2018-2022 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *

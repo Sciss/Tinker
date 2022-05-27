@@ -5,9 +5,9 @@ lazy val deps = new {
     val kollFlitz = "0.2.4"
     val scopt     = "4.0.1"
     val swingPlus = "0.5.0"
-    val tinker    = "2.1.30"
+    val tinker    = "2.1.32"
     val pi4j      = "1.4"
-    val scalaOSC  = "1.3.0"
+    val scalaOSC  = "1.3.1"
   }
 }
 
@@ -16,7 +16,7 @@ lazy val root = project.in(file("."))
     name                 := "TinkerForgeIMU2Test",
     organization         := "de.sciss",
     version              := "0.1.0-SNAPSHOT",
-    scalaVersion         := "2.13.5",
+    scalaVersion         := "2.13.8",
     description          := "Testing the TinkerForge IMU2 brick sensor board from Scala",
     homepage             := Some(url(s"https://github.com/Sciss/${name.value}")),
     licenses             := Seq("LGPL v2.1+" -> url("http://www.gnu.org/licenses/lgpl-2.1.txt")),
@@ -35,9 +35,7 @@ lazy val root = project.in(file("."))
       ("jzv3d releases" at "http://maven.jzy3d.org/releases").withAllowInsecureProtocol(true)  // 3D chart
     ),
     // assembly
-    target          in assembly := baseDirectory.value,
-    // mainClass       in assembly := Some("de.sciss.tinkerforge.RecordAccel"),
-    mainClass       in assembly := Some("de.sciss.tinkerforge.View"),
-    // assemblyJarName in assembly := "RecordAccel.jar"
-    assemblyJarName in assembly := "WekiIMU.jar"
+    assembly / target          := baseDirectory.value,
+    assembly / mainClass       := Some("de.sciss.tinkerforge.View"),
+    assembly / assemblyJarName := "WekiIMU.jar"
   )
