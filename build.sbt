@@ -1,9 +1,13 @@
+lazy val baseName = "TinkerForgeIMU2Test"
+lazy val gitHost  = "codeberg.org"
+lazy val gitUser  = "sciss"
+
 lazy val deps = new {
   val main = new {
     val fileUtil  = "1.1.5"
     val jzy3d     = "1.0.3"
     val kollFlitz = "0.2.4"
-    val scopt     = "4.0.1"
+    val scopt     = "4.1.0"
     val swingPlus = "0.5.0"
     val tinker    = "2.1.32"
     val pi4j      = "1.4"
@@ -13,14 +17,14 @@ lazy val deps = new {
 
 lazy val root = project.in(file("."))
   .settings(
-    name                 := "TinkerForgeIMU2Test",
+    name                 := baseName,
     organization         := "de.sciss",
     version              := "0.1.0-SNAPSHOT",
-    scalaVersion         := "2.13.8",
+    scalaVersion         := "2.13.10",
     description          := "Testing the TinkerForge IMU2 brick sensor board from Scala",
-    homepage             := Some(url(s"https://github.com/Sciss/${name.value}")),
+    homepage             := Some(url(s"https://$gitHost/$gitUser/$baseName")),
     licenses             := Seq("LGPL v2.1+" -> url("http://www.gnu.org/licenses/lgpl-2.1.txt")),
-    scalacOptions       ++= Seq("-deprecation", "-unchecked", "-feature", "-Xfuture", "-encoding", "utf8"),
+    scalacOptions       ++= Seq("-deprecation", "-unchecked", "-feature", "-encoding", "utf8"),
     libraryDependencies ++= Seq(
       "com.tinkerforge"   %   "tinkerforge" % deps.main.tinker,
       "com.github.scopt"  %%  "scopt"       % deps.main.scopt,

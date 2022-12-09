@@ -13,8 +13,7 @@
 
 package de.sciss.tinkerforge
 
-import com.tinkerforge.BrickIMUV2.{OrientationListener, QuaternionListener}
-import com.tinkerforge.{BrickIMUV2, IPConnection}
+import com.tinkerforge.IPConnection
 import de.sciss.osc
 
 import java.net.InetSocketAddress
@@ -23,8 +22,9 @@ import scala.swing.{Alignment, BorderPanel, GridPanel, Label, MainFrame, Swing, 
 
 /** Simple swing view showing the euler angles */
 object View {
-  case class Config(uid: String = Common.DefaultIMU_UID,
-                    osc: Boolean = false, oscHost: String = "127.0.0.1", oscPort: Int = 6448)
+  case class Config(uid: String = Common.DefaultIMU_Brick_UID,
+                    osc: Boolean = false, oscHost: String = "127.0.0.1", oscPort: Int = 6448,
+                    bricklet: Boolean = false)
 
   val default: Config = Config()
 
@@ -45,6 +45,10 @@ object View {
       opt[Int]('p', "port")
         .text (s"OSC output port to Wekinator (default: ${default.oscPort})")
         .action { (v, c) => c.copy(oscPort = v) }
+
+      opt[Unit]('b', "bricklet")
+        .text(s"Use Bricklet v3 instead of Brick v2 (default: ${default.bricklet})")
+        .action { (_, c) => c.copy(bricklet = true) }
     }
     p.parse(args, default).fold(sys.exit(1)) { config =>
       Swing.onEDT(run(config))
@@ -52,9 +56,9 @@ object View {
   }
 
   def run(config: Config): Unit = {
-    val c = new IPConnection
-    // Create IP connection
-    val imu = new BrickIMUV2(config.uid, c) // Create device object
+    val c = new IPConnection  // Create IP connection
+    // Create device object
+    val imu = IMUBrickLike(config.uid, c, bricklet = config.bricklet)
     c.connect(Common.Host, Common.Port)     // Connect to brickd
 
     var oscEnabled = false
@@ -100,31 +104,29 @@ object View {
     val ggAzi   = mkField()
     val ggEle   = mkField()
 
-    imu.addOrientationListener(new OrientationListener {
-      private[this] val scaleAng = 1.0/16.0
+    val scaleAng = 1.0/16.0
 
-      def orientation(heading: Short, roll: Short, pitch: Short): Unit = {
-        val headAng   = heading * scaleAng
-        val rollAng   = roll    * scaleAng
-        val pitchAng  = pitch   * scaleAng
+    imu.addOrientationListener({ (heading: Int, roll: Int, pitch: Int) =>
+      val headAng   = heading * scaleAng
+      val rollAng   = roll    * scaleAng
+      val pitchAng  = pitch   * scaleAng
 
-        if (oscEnabled) tOpt.foreach { t =>
-          try {
-            t.send(osc.Message("/wek/inputs", headAng.toFloat, rollAng.toFloat, pitchAng.toFloat), tgt)
-          } catch {
-            case _: Exception =>
-              oscEnabled = false
-              Console.err.println("Could not send OSC")
-              Swing.onEDT {
-                ggOSC.foreach(_.selected = false)
-              }
-          }
+      if (oscEnabled) tOpt.foreach { t =>
+        try {
+          t.send(osc.Message("/wek/inputs", headAng.toFloat, rollAng.toFloat, pitchAng.toFloat), tgt)
+        } catch {
+          case _: Exception =>
+            oscEnabled = false
+            Console.err.println("Could not send OSC")
+            Swing.onEDT {
+              ggOSC.foreach(_.selected = false)
+            }
         }
-        Swing.onEDT {
-          ggHead  .text = f"$headAng%1.1f°"
-          ggRoll  .text = f"$rollAng%1.1f°"
-          ggPitch .text = f"$pitchAng%1.1f°"
-        }
+      }
+      Swing.onEDT {
+        ggHead  .text = f"$headAng%1.1f°"
+        ggRoll  .text = f"$rollAng%1.1f°"
+        ggPitch .text = f"$pitchAng%1.1f°"
       }
     })
 
@@ -163,10 +165,9 @@ object View {
       Pt3(r(1), r(2), r(3))
     }
 
-    imu.addQuaternionListener(new QuaternionListener {
-      private[this] val scaleQuat = 1.0/16383.0
+    val scaleQuat = 1.0/16383.0
 
-      def quaternion(wi: Short, xi: Short, yi: Short, zi: Short): Unit = {
+    imu.addQuaternionListener({ (wi: Int, xi: Int, yi: Int, zi: Int) =>
         Swing.onEDT {
           val w = wi * scaleQuat
           val x = xi * scaleQuat
@@ -184,14 +185,13 @@ object View {
           ggAzi.text = f"${-ll.lon.toDegrees}%1.1f°"
           ggEle.text = f"${-ll.lat.toDegrees}%1.1f°"
         }
-      }
     })
 
 //    imu.addAccelerationListener()
 
     imu.setQuaternionPeriod(20)
 
-    val pPar = new GridPanel(0, 2) {
+    val pPar: GridPanel = new GridPanel(0, 2) {
       hGap = 8
       vGap = 2
       contents ++= Seq(

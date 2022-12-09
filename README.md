@@ -5,6 +5,7 @@
 ## statement
 
 This is a project for testing the Java bindings to [TinkerForge](https://www.tinkerforge.com) API.
+Specifically, to use the IMU Brick v2 or the IMU Bricklet v3.
 It is (C)opyright 2018–2022 by Hanns Holger Rutz. All rights reserved. The project is released under 
 the [GNU Lesser General Public License](https://raw.github.com/Sciss/TinkerForgeIMU2Test/main/LICENSE) v2.1+ and
 comes with absolutely no warranties. To contact the author, send an e-mail to `contact at sciss.de`.

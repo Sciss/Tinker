@@ -37,13 +37,12 @@ object ExampleEnumerate {
         println(s"Firmware Version:  ${firmwareVersion(0)}.${firmwareVersion(1)}.${firmwareVersion(2)}")
         println(s"Device Identifier: $deviceIdentifier")
         println()
-
-        c.disconnect()
-        sys.exit()
       }
     }
     c.enumerate()
 
-    Thread.sleep(10000L)
+    Thread.sleep(2000L)
+    c.disconnect()
+    sys.exit()
   }
 }

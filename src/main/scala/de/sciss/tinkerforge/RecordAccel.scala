@@ -26,7 +26,7 @@ import scala.util.Try
 
 object RecordAccel {
   case class Config(
-                     uid      : String  = Common.DefaultIMU_UID,
+                     uid      : String  = Common.DefaultIMU_Brick_UID,
                      fOut     : File    = file("out"),
                      maxRecord: Double  = 60.0,
                      skip     : Double  =  4.0,

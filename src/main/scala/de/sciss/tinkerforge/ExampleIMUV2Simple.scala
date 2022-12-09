@@ -20,7 +20,7 @@ import com.tinkerforge.{BrickIMUV2, IPConnection}
 //
 // opens the IMU v2 brick, prints current quaternion, then quits
 object ExampleIMUV2Simple {
-  case class Config(uid: String = Common.DefaultIMU_UID)
+  case class Config(uid: String = Common.DefaultIMU_Brick_UID, bricklet: Boolean = false)
 
   def main(args: Array[String]): Unit = {
     val default = Config()
@@ -29,6 +29,10 @@ object ExampleIMUV2Simple {
       opt[String]('u', "uid")
         .text (s"UID of the IMU brick you want to use (default: ${default.uid})")
         .action { (v, c) => c.copy(uid = v) }
+
+      opt[Unit]('b', "bricklet")
+        .text(s"Use Bricklet v3 instead of Brick v2 (default: ${default.bricklet})")
+        .action { (_, c) => c.copy(bricklet = true) }
     }
     p.parse(args, default).fold(sys.exit(1))(run)
   }
@@ -36,7 +40,7 @@ object ExampleIMUV2Simple {
   def run(config: Config): Unit = {
     val c = new IPConnection
     // Create IP connection
-    val imu = new BrickIMUV2(config.uid, c) // Create device object
+    val imu = IMUBrickLike(config.uid, c, bricklet = config.bricklet) // Create device object
     c.connect(Common.Host, Common.Port)     // Connect to brickd
 
     // Don't use device before `c` is connected

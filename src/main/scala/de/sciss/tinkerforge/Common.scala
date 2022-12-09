@@ -14,7 +14,8 @@
 package de.sciss.tinkerforge
 
 object Common {
-  final val Host            = "localhost"
-  final val Port            = 4223
-  final val DefaultIMU_UID  = "6jDAtS"   // the one I've got...
+  final val Host                      = "localhost"
+  final val Port                      = 4223
+  final val DefaultIMU_Brick_UID      = "6jDAtS"    // the one I've got...
+  final val DefaultIMU_Bricklet_UID   = "Zpw"       // the one I've got...
 }
