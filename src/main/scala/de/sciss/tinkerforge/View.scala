@@ -20,7 +20,9 @@ import java.net.InetSocketAddress
 import scala.swing.event.ButtonClicked
 import scala.swing.{Alignment, BorderPanel, GridPanel, Label, MainFrame, Swing, TextField, ToggleButton}
 
-/** Simple swing view showing the euler angles */
+/** Simple swing view showing the euler angles,
+  * and option to forward data to Wekinator via OSC.
+  */
 object View {
   case class Config(uid: String = Common.DefaultIMU_Brick_UID,
                     osc: Boolean = false, oscHost: String = "127.0.0.1", oscPort: Int = 6448,

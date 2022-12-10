@@ -7,11 +7,12 @@ lazy val deps = new {
     val fileUtil  = "1.1.5"
     val jzy3d     = "1.0.3"
     val kollFlitz = "0.2.4"
-    val scopt     = "4.1.0"
-    val swingPlus = "0.5.0"
-    val tinker    = "2.1.32"
     val pi4j      = "1.4"
     val scalaOSC  = "1.3.1"
+    val scallop   = "4.1.0"
+    val scopt     = "4.1.0"   // TODO: move all over to scallop
+    val swingPlus = "0.5.0"
+    val tinker    = "2.1.32"
   }
 }
 
@@ -33,6 +34,7 @@ lazy val root = project.in(file("."))
       "de.sciss"          %%  "swingplus"   % deps.main.swingPlus,
       "de.sciss"          %%  "scalaosc"    % deps.main.scalaOSC,
       "org.jzy3d"         %   "jzy3d-api"   % deps.main.jzy3d,
+      "org.rogach"        %%  "scallop"     % deps.main.scallop,     // command line option parsing
       "com.pi4j"          %   "pi4j-core"   % deps.main.pi4j
     ),
     resolvers ++= Seq(
