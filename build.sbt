@@ -42,6 +42,8 @@ lazy val root = project.in(file("."))
     ),
     // assembly
     assembly / target          := baseDirectory.value,
-    assembly / mainClass       := Some("de.sciss.tinkerforge.View"),
-    assembly / assemblyJarName := "WekiIMU.jar"
+//    assembly / mainClass := Some("de.sciss.tinkerforge.View"),
+//    assembly / assemblyJarName := "WekiIMU.jar",
+    assembly / mainClass       := Some("de.sciss.tinkerforge.IMU_OSC"),
+    assembly / assemblyJarName := "IMU_OSC.jar",
   )

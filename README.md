@@ -17,5 +17,7 @@ This project builds against Scala 2.13, using [sbt](http://www.scala-sbt.org/). 
 - `sbt 'runMain de.sciss.tinkerforge.ExampleEnumerate'`
 - `sbt 'runMain de.sciss.tinkerforge.ExampleIMUV2Simple --uid your-imu-brick-id'`
 - `sbt 'runMain de.sciss.tinkerforge.ExampleIMUV2AllData --uid your-imu-brick-id'`
+- `sbt 'runMain de.sciss.tinkerforge.View --uid your-imu-brick-id'`
 
-To run the `View` target that can send OSC over to Wekinator, use `sbt assembly` and the `run.sh` script.
+To run the `IMU_OSC` target that can send the sensor data to a target node via OSC,
+use `sbt assembly` and the `run.sh` script. `java -jar IMU_OSC.jar --help` for command line args.

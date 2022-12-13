@@ -1,2 +1,2 @@
 #!/bin/bash
-java -jar WekiIMU.jar --osc
+java -jar IMU_OSC.jar --osc
