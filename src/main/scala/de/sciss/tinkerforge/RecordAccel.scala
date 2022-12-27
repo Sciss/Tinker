@@ -2,7 +2,7 @@
  *  RecordAccel.scala
  *  (TinkerForgeIMU2Test)
  *
- *  Copyright (c) 2018-2022 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2018-2023 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -16,9 +16,9 @@ package de.sciss.tinkerforge
 import java.io.{DataInputStream, DataOutputStream, FileInputStream, FileOutputStream}
 import java.text.SimpleDateFormat
 import java.util.{Date, Locale}
-
 import com.tinkerforge.{BrickIMUV2, IPConnection}
 import de.sciss.file._
+import org.rogach.scallop.{ScallopConf, ScallopOption => Opt}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future, Promise}
@@ -36,39 +36,53 @@ object RecordAccel {
                    )
 
   def main(args: Array[String]): Unit = {
-    val default = Config()
+    object p extends ScallopConf(args) {
 
-    val p = new scopt.OptionParser[Config]("RecordAccel") {
-      opt[File]('f', "file")
-        .required()
-        .text ("Output file for binary linear acceleration data.")
-        .action { (v, c) => c.copy(fOut = v) }
-      opt[String]('u', "uid")
-        .text (s"UID of the IMU brick you want to use (default: ${default.uid})")
-        .action { (v, c) => c.copy(uid = v) }
-      opt[Double]('t', "duration")
-        .text (s"Maximum record duration in seconds (default: ${default.maxRecord})")
-        .validate { v => if (v >= 1.0) success else failure("Must be >= 1.0") }
-        .action { (v, c) => c.copy(maxRecord = v) }
-      opt[Double]('s', "skip")
-        .validate { v => if (v >= 0.0) success else failure("Must be >= 0.0") }
-        .text (s"Initial skip time before recording in seconds (default: ${default.skip})")
-        .action { (v, c) => c.copy(skip = v) }
-      opt[Int]('p', "period")
-        .validate { v => if (v >= 1) success else failure("Must be >= 1") }
-        .text (s"Data polling period in ms (default: ${default.period})")
-        .action { (v, c) => c.copy(period = v) }
-      opt[Unit]('r', "raspi")
-        .text ("RaspberryPi controls (LED, buttons)")
-        .action { (_, c) => c.copy(raspi = true) }
-      opt[Unit]('v', "verbose")
-        .text ("Enable verbose logging")
-        .action { (_, c) => c.copy(verbose = true) }
+      import org.rogach.scallop._
+
+      printedName = "RecordAccel"
+      private val default = Config()
+
+      val fOut: Opt[File] = opt(short = 'f', name = "file", required = true,
+        descr = "Output file for binary linear acceleration data.",
+      )
+      val uid: Opt[String] = opt(short = 'u', name = "uid", default = Some(default.uid),
+        descr = s"UID of the IMU brick you want to use (default: ${default.uid})"
+      )
+      val maxRecord: Opt[Double] = opt(short = 't', name = "duration", default = Some(default.maxRecord),
+        descr = s"Maximum record duration in seconds (default: ${default.maxRecord})",
+        validate = { v => v >= 1.0 }
+      )
+      val skip: Opt[Double] = opt(short = 's', name = "skip", default = Some(default.skip),
+        descr = s"Initial skip time before recording in seconds (default: ${default.skip})",
+        validate = { v => v >= 0.0 }
+      )
+      val period: Opt[Int] = opt(short = 'p', name = "period", default = Some(default.period),
+        descr = s"Data polling period in ms (default: ${default.period})",
+        validate = { v => v >= 1 }
+      )
+      val raspi: Opt[Boolean] = toggle(short = 'r', name = "raspi", default = Some(default.raspi),
+        descrYes = "RaspberryPi controls (LED, buttons)",
+      )
+      val verbose: Opt[Boolean] = toggle(short = 'v', name = "verbose", default = Some(default.verbose),
+        descrYes = "Enable verbose logging",
+      )
+
+      verify()
+
+      val config: Config = Config(
+        uid       = uid       (),
+        fOut      = fOut      (),
+        maxRecord = maxRecord (),
+        skip      = skip      (),
+        period    = period    (),
+        raspi     = raspi     (),
+        verbose   = verbose   (),
+      )
     }
-    p.parse(args, default).fold(sys.exit(1)) { c =>
-      if (c.raspi)  runRaspi  (c)
-      else          runNoRaspi(c)
-    }
+    implicit val c: Config = p.config
+    if (c.raspi)  runRaspi  (c)
+    else          runNoRaspi(c)
   }
 
   final val COOKIE = 0x4C6E4163 // "LnAc"

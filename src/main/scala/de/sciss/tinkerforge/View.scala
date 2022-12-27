@@ -2,7 +2,7 @@
  *  View.scala
  *  (TinkerForgeIMU2Test)
  *
- *  Copyright (c) 2018-2022 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2018-2023 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -15,6 +15,7 @@ package de.sciss.tinkerforge
 
 import com.tinkerforge.IPConnection
 import de.sciss.osc
+import org.rogach.scallop.{ScallopConf, ScallopOption => Opt}
 
 import java.net.InetSocketAddress
 import scala.swing.event.ButtonClicked
@@ -31,33 +32,42 @@ object View {
   val default: Config = Config()
 
   def main(args: Array[String]): Unit = {
-    val p = new scopt.OptionParser[Config]("TestEulerAngles") {
-      opt[String]('u', "uid")
-        .text (s"UID of the IMU brick you want to use (default: ${default.uid})")
-        .action { (v, c) => c.copy(uid = v) }
+    object p extends ScallopConf(args) {
 
-      opt[Unit]('o', "osc")
-        .text (s"Enable OSC output to Wekinator (default: ${default.osc})")
-        .action { (_, c) => c.copy(osc = true) }
+      import org.rogach.scallop._
 
-      opt[String]('h', "host")
-        .text (s"OSC output host name to Wekinator (default: ${default.oscHost})")
-        .action { (v, c) => c.copy(oscHost = v) }
+      printedName = "View Euler Angles"
+      private val default = Config()
+      val uid: Opt[String] = opt(short = 'u', name = "uid", default = Some(default.uid),
+        descr = s"UID of the IMU brick you want to use (default: ${default.uid})"
+      )
+      val osc: Opt[Boolean] = toggle(short = 'o', name = "osc", default = Some(default.osc),
+        descrYes = s"Enable OSC output to Wekinator (default: ${default.osc})"
+      )
+      val host: Opt[String] = opt(short = 'h', name = "host", default = Some(default.oscHost),
+        descr = s"OSC output host name to Wekinator (default: ${default.oscHost})"
+      )
+      val port: Opt[Int] = opt(short = 'p', name = "port", default = Some(default.oscPort),
+        descr = s"OSC output port to Wekinator (default: ${default.oscPort})"
+      )
+      val bricklet: Opt[Boolean] = toggle(short = 'b', name = "bricklet", default = Some(default.bricklet),
+        descrYes = s"Use Bricklet v3 instead of Brick v2 (default: ${default.bricklet})"
+      )
+      verify()
 
-      opt[Int]('p', "port")
-        .text (s"OSC output port to Wekinator (default: ${default.oscPort})")
-        .action { (v, c) => c.copy(oscPort = v) }
-
-      opt[Unit]('b', "bricklet")
-        .text(s"Use Bricklet v3 instead of Brick v2 (default: ${default.bricklet})")
-        .action { (_, c) => c.copy(bricklet = true) }
+      val config: Config = Config(
+        uid       = uid(),
+        osc       = osc(),
+        oscHost   = host(),
+        oscPort   = port(),
+        bricklet  = bricklet(),
+      )
     }
-    p.parse(args, default).fold(sys.exit(1)) { config =>
-      Swing.onEDT(run(config))
-    }
+    implicit val c: Config = p.config
+    Swing.onEDT(run())
   }
 
-  def run(config: Config): Unit = {
+  def run()(implicit config: Config): Unit = {
     val c = new IPConnection  // Create IP connection
     // Create device object
     val imu = IMUBrickLike(config.uid, c, bricklet = config.bricklet)

@@ -2,7 +2,7 @@
  *  ExampleIMUV2AllData.scala
  *  (TinkerForgeIMU2Test)
  *
- *  Copyright (c) 2018-2022 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2018-2023 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -13,27 +13,38 @@
 
 package de.sciss.tinkerforge
 
-import com.tinkerforge.{BrickIMUV2, IPConnection}
+import com.tinkerforge.IPConnection
+import org.rogach.scallop.{ScallopConf, ScallopOption => Opt}
 
 object ExampleIMUV2AllData {
   case class Config(uid: String = Common.DefaultIMU_Brick_UID, bricklet: Boolean = false)
 
   def main(args: Array[String]): Unit = {
-    val default = Config()
+    object p extends ScallopConf(args) {
 
-    val p = new scopt.OptionParser[Config]("ExampleIMUV2AllData") {
-      opt[String]('u', "uid")
-        .text (s"UID of the IMU brick you want to use (default: ${default.uid})")
-        .action { (v, c) => c.copy(uid = v) }
+      import org.rogach.scallop._
 
-      opt[Unit]('b', "bricklet")
-        .text(s"Use Bricklet v3 instead of Brick v2 (default: ${default.bricklet})")
-        .action { (_, c) => c.copy(bricklet = true) }
+      printedName = "IMU All Data"
+      private val default = Config()
+
+      val uid: Opt[String] = opt(short = 'u', name = "uid", default = Some(default.uid),
+        descr = s"UID of the IMU brick you want to use (default: ${default.uid})"
+      )
+      val bricklet: Opt[Boolean] = toggle(short = 'b', name = "bricklet", default = Some(default.bricklet),
+        descrYes = s"Use Bricklet v3 instead of Brick v2 (default: ${default.bricklet})"
+      )
+      verify()
+
+      val config: Config = Config(
+        uid       = uid(),
+        bricklet  = bricklet(),
+      )
     }
-    p.parse(args, default).fold(sys.exit(1))(run)
+    implicit val c: Config = p.config
+    run()
   }
 
-  def run(config: Config): Unit = {
+  def run()(implicit config: Config): Unit = {
     val c = new IPConnection // Create IP connection
     val imu = IMUBrickLike(config.uid, c, bricklet = config.bricklet) // Create device object
     c.connect(Common.Host, Common.Port)     // Connect to brickd
@@ -45,9 +56,7 @@ object ExampleIMUV2AllData {
     val scaleGrav     = 1.0/  100.0
 
     imu.addAllDataListener { d =>
-      import d.{acceleration => accel, angularVelocity => angVel, eulerAngle => eulerAng,
-        quaternion => quat, linearAcceleration => linAccel, gravityVector => gravityVec,
-        temperature => temp, calibrationStatus => calibStatus, _}
+      import d.{acceleration => accel, angularVelocity => angVel, calibrationStatus => calibStatus, eulerAngle => eulerAng, gravityVector => gravityVec, linearAcceleration => linAccel, quaternion => quat, temperature => temp, _}
       println(f"Acceleration        (X): ${accel(0)*scaleAccel}%1.2f m/s²")
       println(f"Acceleration        (Y): ${accel(1)*scaleAccel}%1.2f m/s²")
       println(f"Acceleration        (Z): ${accel(2)*scaleAccel}%1.2f m/s²")

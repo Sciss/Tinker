@@ -2,7 +2,7 @@
  *  IntegrateAndPlot.scala
  *  (TinkerForgeIMU2Test)
  *
- *  Copyright (c) 2018-2022 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2018-2023 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is published under the GNU Lesser General Public License v2.1+
  *
@@ -21,8 +21,9 @@ import org.jzy3d.maths.doubles.Coord3D
 import org.jzy3d.maths.{Coord3d, Rectangle}
 import org.jzy3d.plot3d.primitives.Point
 import org.jzy3d.plot3d.rendering.canvas.Quality
+import org.rogach.scallop.{ScallopConf, ScallopOption => Opt}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object IntegrateAndPlot {
   case class Config(
@@ -33,31 +34,40 @@ object IntegrateAndPlot {
                    )
 
   def main(args: Array[String]): Unit = {
-    val default = Config()
+    object p extends ScallopConf(args) {
 
-    val p = new scopt.OptionParser[Config]("RecordAccel") {
-      opt[File]('f', "file")
-        .required()
-        .text ("Input file for binary linear acceleration data.")
-        .action { (v, c) => c.copy(fIn = v) }
+      import org.rogach.scallop._
 
-      opt[Int]('p', "period")
-        .validate { v => if (v >= 1) success else failure("Must be >= 1") }
-        .text (s"Data polling period in ms (default: ${default.period})")
-        .action { (v, c) => c.copy(period = v) }
+      printedName = "IntegrateAndPlot"
+      private val default = Config()
 
-      opt[Unit]('z', "zero-velocity")
-        .text ("Assume start and end velocity are zero.")
-        .action { (_, c) => c.copy(zeroVel = true) }
+      val fIn: Opt[File] = opt(short = 'f', name = "file", required = true,
+        descr = "Input file for binary linear acceleration data."
+      )
+      val period: Opt[Int] = opt(short = 'p', name = "period", default = Some(default.period),
+        descr = s"Data polling period in ms (default: ${default.period})",
+        validate = { v => v >= 1 }
+      )
+      val zeroVel: Opt[Boolean] = toggle(short = 'z', name = "zero-velocity", default = Some(default.zeroVel),
+        descrYes = "Assume start and end velocity are zero."
+      )
+      val noZ: Opt[Boolean] = toggle(name = "no-vertical", default = Some(default.noZ),
+        descrYes = "Assume all Z coordinates are zero."
+      )
+      verify()
 
-      opt[Unit]("no-vertical")
-        .text ("Assume all Z coordinates are zero.")
-        .action { (_, c) => c.copy(noZ = true) }
+      val config: Config = Config(
+        fIn     = fIn(),
+        period  = period(),
+        zeroVel = zeroVel(),
+        noZ     = noZ(),
+      )
     }
-    p.parse(args, default).fold(sys.exit(1))(run)
+    implicit val c: Config = p.config
+    run()
   }
 
-  def run(config: Config): Unit = {
+  def run()(implicit config: Config): Unit = {
     val scaleAccel  = 1.0/  100.0             // to get to metres per squared-seconds
     val dt          = config.period / 1000.0  // seconds
 
