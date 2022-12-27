@@ -20,6 +20,11 @@ object IMUBrickLike {
   def apply(uid: String, c: IPConnection, bricklet: Boolean): IMUBrickLike =
     if (bricklet) brickletV3(uid, c) else brickV2(uid, c)
 
+  /** If the uid is three characters or less, returns `true`, if it is longer returns `false`.
+    * This seems to be correct in my configuration.
+    */
+  def isBricklet(uid: String): Boolean = uid.length <= 3
+
   def brickV2(uid: String, c: IPConnection): IMUBrickLike =
     new IMUBrickLike {
       private val peer = new BrickIMUV2(uid, c)

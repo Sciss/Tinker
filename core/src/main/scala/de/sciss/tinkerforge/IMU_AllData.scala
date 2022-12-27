@@ -1,5 +1,5 @@
 /*
- *  ExampleIMUV2AllData.scala
+ *  IMU_AllData.scala
  *  (TinkerForgeIMU2Test)
  *
  *  Copyright (c) 2018-2023 Hanns Holger Rutz. All rights reserved.
@@ -14,9 +14,10 @@
 package de.sciss.tinkerforge
 
 import com.tinkerforge.IPConnection
+import de.sciss.tinkerforge.IMUBrickLike.isBricklet
 import org.rogach.scallop.{ScallopConf, ScallopOption => Opt}
 
-object ExampleIMUV2AllData {
+object IMU_AllData {
   case class Config(uid: String = Common.DefaultIMU_Brick_UID, bricklet: Boolean = false)
 
   def main(args: Array[String]): Unit = {
@@ -30,14 +31,14 @@ object ExampleIMUV2AllData {
       val uid: Opt[String] = opt(short = 'u', name = "uid", default = Some(default.uid),
         descr = s"UID of the IMU brick you want to use (default: ${default.uid})"
       )
-      val bricklet: Opt[Boolean] = toggle(short = 'b', name = "bricklet", default = Some(default.bricklet),
-        descrYes = s"Use Bricklet v3 instead of Brick v2 (default: ${default.bricklet})"
+      val bricklet: Opt[Boolean] = toggle(short = 'b', name = "bricklet",
+        descrYes = "Use Bricklet v3 instead of Brick v2"
       )
       verify()
 
       val config: Config = Config(
         uid       = uid(),
-        bricklet  = bricklet(),
+        bricklet  = bricklet.getOrElse(isBricklet(uid())),
       )
     }
     implicit val c: Config = p.config

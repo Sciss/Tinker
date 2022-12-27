@@ -13,13 +13,13 @@
 
 package de.sciss.tinkerforge
 
-import java.io.{DataInputStream, DataOutputStream, FileInputStream, FileOutputStream}
-import java.text.SimpleDateFormat
-import java.util.{Date, Locale}
 import com.tinkerforge.{BrickIMUV2, IPConnection}
 import de.sciss.file._
 import org.rogach.scallop.{ScallopConf, ScallopOption => Opt}
 
+import java.io.{DataInputStream, DataOutputStream, FileInputStream, FileOutputStream}
+import java.text.SimpleDateFormat
+import java.util.{Date, Locale}
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future, Promise}
 import scala.util.Try
@@ -37,8 +37,6 @@ object RecordAccel {
 
   def main(args: Array[String]): Unit = {
     object p extends ScallopConf(args) {
-
-      import org.rogach.scallop._
 
       printedName = "RecordAccel"
       private val default = Config()

@@ -15,6 +15,7 @@ package de.sciss.tinkerforge
 
 import com.tinkerforge.IPConnection
 import de.sciss.osc
+import de.sciss.tinkerforge.IMUBrickLike.isBricklet
 import org.rogach.scallop.{ScallopConf, ScallopOption => Opt}
 
 import java.net.InetSocketAddress
@@ -50,8 +51,8 @@ object View {
       val port: Opt[Int] = opt(short = 'p', name = "port", default = Some(default.oscPort),
         descr = s"OSC output port to Wekinator (default: ${default.oscPort})"
       )
-      val bricklet: Opt[Boolean] = toggle(short = 'b', name = "bricklet", default = Some(default.bricklet),
-        descrYes = s"Use Bricklet v3 instead of Brick v2 (default: ${default.bricklet})"
+      val bricklet: Opt[Boolean] = toggle(short = 'b', name = "bricklet",
+        descrYes = "Use Bricklet v3 instead of Brick v2"
       )
       verify()
 
@@ -60,11 +61,17 @@ object View {
         osc       = osc(),
         oscHost   = host(),
         oscPort   = port(),
-        bricklet  = bricklet(),
+        bricklet  = bricklet.getOrElse(isBricklet(uid())),
       )
     }
     implicit val c: Config = p.config
     Swing.onEDT(run())
+
+//    // otherwise VM quits immediately
+//    val sync = new AnyRef
+//    val t = new Thread(() => sync.synchronized(sync.wait()))
+//    t.setDaemon(false)
+//    t.start()
   }
 
   def run()(implicit config: Config): Unit = {

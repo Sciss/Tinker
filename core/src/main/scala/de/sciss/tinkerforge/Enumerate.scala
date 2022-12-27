@@ -1,5 +1,5 @@
 /*
- *  ExampleEnumerate.scala
+ *  Enumerate.scala
  *  (TinkerForgeIMU2Test)
  *
  *  Copyright (c) 2018-2023 Hanns Holger Rutz. All rights reserved.
@@ -19,7 +19,7 @@ import com.tinkerforge.{IPConnection, IPConnectionBase}
 // published by TinkerForge under CC0 1.0 Universal (public domain)
 //
 // Enumerates the devices found and then quits.
-object ExampleEnumerate {
+object Enumerate {
   def main(args: Array[String]): Unit = run()
 
   def run(): Unit = {

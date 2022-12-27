@@ -1,2 +1,2 @@
 #!/bin/bash
-java -jar IMU_OSC.jar --osc
+java -jar core/IMU_OSC.jar

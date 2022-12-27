@@ -15,7 +15,7 @@ package de.sciss.tinkerforge
 
 import com.tinkerforge.IPConnection
 import de.sciss.osc
-import de.sciss.tinkerforge.IMUBrickLike.AllData
+import de.sciss.tinkerforge.IMUBrickLike.{AllData, isBricklet}
 import org.rogach.scallop.{ScallopConf, ScallopOption => Opt}
 
 import java.net.InetSocketAddress
@@ -262,7 +262,7 @@ object IMU_OSC {
     val num = config.sensor.size
     val imuSeq = Seq.tabulate(num) { i =>
       val uid       = config.uid(i)
-      val bricklet  = uid.length <= 3
+      val bricklet  = isBricklet(uid)
       val imu       = IMUBrickLike(uid, c, bricklet = bricklet)
       imu
     }

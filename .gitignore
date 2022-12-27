@@ -6,4 +6,5 @@ project/boot/
 .idea_modules/
 .history
 /*.jar
+/core/*.jar
 .bsp/
