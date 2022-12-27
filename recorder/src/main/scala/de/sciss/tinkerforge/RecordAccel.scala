@@ -37,6 +37,7 @@ object RecordAccel {
 
   def main(args: Array[String]): Unit = {
     object p extends ScallopConf(args) {
+      import org.rogach.scallop._
 
       printedName = "RecordAccel"
       private val default = Config()
