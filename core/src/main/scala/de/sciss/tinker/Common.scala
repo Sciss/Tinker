@@ -1,6 +1,6 @@
 /*
  *  Common.scala
- *  (TinkerForgeIMU2Test)
+ *  (Tinker)
  *
  *  Copyright (c) 2018-2023 Hanns Holger Rutz. All rights reserved.
  *
@@ -11,11 +11,12 @@
  *  contact@sciss.de
  */
 
-package de.sciss.tinkerforge
+package de.sciss.tinker
 
 object Common {
   final val Host                      = "localhost"
   final val Port                      = 4223
   final val DefaultIMU_Brick_UID      = "6jDAtS"    // the one I've got...
   final val DefaultIMU_Bricklet_UID   = "Zpw"       // the one I've got...
+  final val DefaultIMU_Bricklet2_UID  = "2146"      // the one I've got...
 }

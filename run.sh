@@ -1,2 +1,3 @@
 #!/bin/bash
-java -jar core/IMU_OSC.jar
+cd "$(dirname "$0")" # go into directory of script
+java -jar core/IMU_OSC.jar "$@"

@@ -1,6 +1,6 @@
 /*
  *  IMUBrickLike.scala
- *  (TinkerForgeIMU2Test)
+ *  (Tinker)
  *
  *  Copyright (c) 2018-2023 Hanns Holger Rutz. All rights reserved.
  *
@@ -11,7 +11,7 @@
  *  contact@sciss.de
  */
 
-package de.sciss.tinkerforge
+package de.sciss.tinker
 
 import com.tinkerforge.{BrickIMUV2, BrickletIMUV3, IPConnection}
 
@@ -20,10 +20,10 @@ object IMUBrickLike {
   def apply(uid: String, c: IPConnection, bricklet: Boolean): IMUBrickLike =
     if (bricklet) brickletV3(uid, c) else brickV2(uid, c)
 
-  /** If the uid is three characters or less, returns `true`, if it is longer returns `false`.
+  /** If the uid is four characters or less, returns `true`, if it is longer returns `false`.
     * This seems to be correct in my configuration.
     */
-  def isBricklet(uid: String): Boolean = uid.length <= 3
+  def isBricklet(uid: String): Boolean = uid.length <= 4
 
   def brickV2(uid: String, c: IPConnection): IMUBrickLike =
     new IMUBrickLike {

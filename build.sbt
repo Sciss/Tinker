@@ -1,4 +1,4 @@
-lazy val baseName = "TinkerForgeIMU2Test"
+lazy val baseName = "Tinker"
 lazy val gitHost  = "codeberg.org"
 lazy val gitUser  = "sciss"
 

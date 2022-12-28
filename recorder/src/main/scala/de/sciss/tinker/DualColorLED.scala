@@ -1,6 +1,6 @@
 /*
  *  DualColorLED.scala
- *  (TinkerForgeIMU2Test)
+ *  (Tinker)
  *
  *  Copyright (c) 2018-2023 Hanns Holger Rutz. All rights reserved.
  *
@@ -11,7 +11,7 @@
  *  contact@sciss.de
  */
 
-package de.sciss.tinkerforge
+package de.sciss.tinker
 
 import com.pi4j.io.gpio.{GpioFactory, PinState, RaspiPin}
 
