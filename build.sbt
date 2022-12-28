@@ -51,7 +51,7 @@ lazy val core = project.in(file("core"))
     assembly / target          := baseDirectory.value,
     //    assembly / mainClass := Some("de.sciss.tinkerforge.View"),
     //    assembly / assemblyJarName := "WekiIMU.jar",
-    assembly / mainClass       := Some("de.sciss.tinkerforge.IMU_OSC"),
+    assembly / mainClass       := Some("de.sciss.tinker.IMU_OSC"),
     assembly / assemblyJarName := "IMU_OSC.jar"
   )
 
@@ -73,6 +73,6 @@ lazy val recorder = project.in(file("recorder"))
     ),
     // assembly
     assembly / target          := baseDirectory.value,
-    assembly / mainClass       := Some("de.sciss.tinkerforge.IMU_OSC"),
+    assembly / mainClass       := Some("de.sciss.tinker.RecordAccel"),
     assembly / assemblyJarName := "IMU_OSC.jar"
   )
