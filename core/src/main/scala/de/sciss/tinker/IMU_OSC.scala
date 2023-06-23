@@ -18,7 +18,7 @@ import de.sciss.osc
 import de.sciss.tinker.IMUBrickLike.{AllData, isBricklet}
 import org.rogach.scallop.{ScallopConf, ScallopOption => Opt}
 
-import java.net.InetSocketAddress
+import java.net.{InetAddress, InetSocketAddress}
 import scala.collection.immutable.ArraySeq
 import scala.util.control.NonFatal
 
@@ -43,6 +43,7 @@ object IMU_OSC {
                            add        : List[Float]   = List(0f, 0f),
                            targetHost : String  = "127.0.0.1",
                            targetPort : Int     = 7771,
+                           sourceHost : String  = "127.0.0.1",
                            sourcePort : Int     = 0,
                            tcp        : Boolean = false,
                            verbose    : Boolean = false,
@@ -203,6 +204,9 @@ object IMU_OSC {
       val targetPort: Opt[Int] = opt(default = Some(default.targetPort),
         descr = s"Target OSC port (default: ${default.targetPort}).",
       )
+      val sourceHost: Opt[String] = opt(default = Some(default.sourceHost),
+        descr = s"Source OSC host (default: ${default.sourceHost}).",
+      )
       val sourcePort: Opt[Int] = opt(default = Some(default.sourcePort),
         descr = s"Source OSC port, or zero to pick any (default: ${default.sourcePort}).",
       )
@@ -228,6 +232,7 @@ object IMU_OSC {
         add         = add(),
         targetHost  = targetHost(),
         targetPort  = targetPort(),
+        sourceHost  = sourceHost(),
         sourcePort  = sourcePort(),
         tcp         = tcp(),
         verbose     = verbose(),
@@ -242,15 +247,17 @@ object IMU_OSC {
     val sock = new InetSocketAddress(config.targetHost, config.targetPort)
     val send: osc.Message => Unit = if (config.tcp) {
       val cfg = osc.TCP.Config()
-      cfg.localIsLoopback = config.targetHost == "127.0.0.1"
-      cfg.localPort = config.sourcePort
+//      cfg.localIsLoopback = config.targetHost == "127.0.0.1"
+      cfg.localAddress  = InetAddress.getByName(config.sourceHost)
+      cfg.localPort     = config.sourcePort
       val t = osc.TCP.Transmitter(sock, cfg)
       t.connect()
       if (config.verbose) t.dump()
       t ! _
     } else {
       val cfg = osc.UDP.Config()
-      cfg.localIsLoopback = config.targetHost == "127.0.0.1"
+//      cfg.localIsLoopback = config.targetHost == "127.0.0.1"
+      cfg.localAddress  = InetAddress.getByName(config.sourceHost)
       cfg.localPort = config.sourcePort
       val t = osc.UDP.Transmitter(cfg)
       t.connect()
